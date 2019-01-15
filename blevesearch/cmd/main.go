@@ -74,7 +74,7 @@ func main() {
 			defer close(bleveChan)
 			for line := range csvChan {
 				id := geoip_fts_testing.GetIdFromIpRange(line.StartIP, line.StartIP)
-				bo := blevesearch.DalaLineToBleveInfoObject(&line)
+				bo := blevesearch.DataLineToBleveInfoObject(&line)
 				bo.ID = id
 				bleveChan <- *bo
 			}

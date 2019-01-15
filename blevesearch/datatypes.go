@@ -32,7 +32,7 @@ const (
 	InfoMobileCarrierCode BleveInfoField = "MobileCarrierCode"
 )
 
-func DalaLineToBleveInfoObject(dl *csv_helpers.DataLine) *BleveInfoObject {
+func DataLineToBleveInfoObject(dl *csv_helpers.DataLine) *BleveInfoObject {
 	return &BleveInfoObject{
 		StartIP:           geoip_fts_testing.IpToInt(dl.StartIP),
 		EndIP:             geoip_fts_testing.IpToInt(dl.EndIP),
