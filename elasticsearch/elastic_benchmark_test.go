@@ -1,4 +1,4 @@
-package main
+package elasticsearch
 
 import (
 	"github.com/Pallinder/go-randomdata"

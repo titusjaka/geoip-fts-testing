@@ -2,6 +2,9 @@ package main
 
 import (
 	"flag"
+	"github.com/titusjaka/geoip-fts-testing"
+	"github.com/titusjaka/geoip-fts-testing/blevesearch"
+	"github.com/titusjaka/geoip-fts-testing/csv-helpers"
 	"log"
 
 	"golang.org/x/net/context"
@@ -33,21 +36,21 @@ func main() {
 		log.Fatal("bulk-size must be a positive number")
 	}
 
-	var geoInfoIndex *GeoInfoIndex
+	var geoInfoIndex *blevesearch.GeoInfoIndex
 	var err error
 
 	if *useSimple {
-		geoInfoIndex, err = OpenOrCreateSimpleGeoInfoIndex(*index)
+		geoInfoIndex, err = blevesearch.OpenOrCreateSimpleGeoInfoIndex(*index)
 	} else {
-		geoInfoIndex, err = OpenOrCreateGeoInfoIndex(*index)
+		geoInfoIndex, err = blevesearch.OpenOrCreateGeoInfoIndex(*index)
 	}
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	csvChan := make(chan DataLine)
-	bleveChan := make(chan BleveInfoObject)
+	csvChan := make(chan csv_helpers.DataLine)
+	bleveChan := make(chan blevesearch.BleveInfoObject)
 
 	gr, ctx := errgroup.WithContext(context.Background())
 
@@ -61,7 +64,7 @@ func main() {
 		func() error {
 			defer log.Println("[DEBUG] CSV channel is closed")
 			defer close(csvChan)
-			return readDataFromCSV(*filename, ctx, csvChan)
+			return csv_helpers.ReadDataFromCSV(*filename, ctx, csvChan)
 		},
 	)
 
@@ -70,8 +73,8 @@ func main() {
 			defer log.Println("[DEBUG] Elastic channel is closed")
 			defer close(bleveChan)
 			for line := range csvChan {
-				id := getIdFromIpRange(line.StartIP, line.StartIP)
-				bo := line.toBleveInfoObject()
+				id := geoip_fts_testing.GetIdFromIpRange(line.StartIP, line.StartIP)
+				bo := blevesearch.DalaLineToBleveInfoObject(&line)
 				bo.ID = id
 				bleveChan <- *bo
 			}

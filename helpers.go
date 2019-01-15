@@ -1,4 +1,4 @@
-package main
+package geoip_fts_testing
 
 import (
 	"crypto/md5"
@@ -8,7 +8,7 @@ import (
 	"net"
 )
 
-func ipToInt(ipStr string) *big.Int {
+func IpToInt(ipStr string) *big.Int {
 	ip := net.ParseIP(ipStr)
 	newInt := big.NewInt(0)
 	ipBytes := []byte(ip)
@@ -20,11 +20,11 @@ func ipToInt(ipStr string) *big.Int {
 	return newInt.SetBytes(ipBytes)
 }
 
-func intToIp(ipInt *big.Int) string {
+func IntToIp(ipInt *big.Int) string {
 	return net.IP(ipInt.Bytes()).String()
 }
 
-func getIdFromIpRange(startIP, endIP string) string {
+func GetIdFromIpRange(startIP, endIP string) string {
 	hasher := md5.New()
 	hasher.Write([]byte(fmt.Sprintf("%s-%s", startIP, endIP)))
 	return hex.EncodeToString(hasher.Sum(nil))

@@ -1,4 +1,4 @@
-package main
+package blevesearch
 
 import (
 	"log"

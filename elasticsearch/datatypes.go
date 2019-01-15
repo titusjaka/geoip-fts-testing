@@ -1,18 +1,8 @@
-package main
+package elasticsearch
 
-type DataLine struct {
-	StartIP           string `csv:"start-ip"`
-	EndIP             string `csv:"end-ip"`
-	Country           string `csv:"edge-two-letter-country"`
-	Region            string `csv:"edge-region"`
-	RegionCode        string `csv:"edge-region-code"`
-	City              string `csv:"edge-city"`
-	CityCode          string `csv:"edge-city-code"`
-	ConnSpeed         string `csv:"edge-conn-speed"`
-	ISP               string `csv:"isp-name"`
-	MobileCarrier     string `csv:"mobile-carrier"`
-	MobileCarrierCode string `csv:"mobile-carrier-code"`
-}
+import (
+	"github.com/titusjaka/geoip-fts-testing/csv-helpers"
+)
 
 type ElasticObject struct {
 	ID                string         `json:"-"`
@@ -33,23 +23,23 @@ type ElasticIpRange struct {
 	EndIP   string `json:"lte"`
 }
 
-func csvLineToDataLine(csvLine []string) *DataLine {
-	return &DataLine{
-		StartIP:           csvLine[0],
-		EndIP:             csvLine[1],
-		Country:           csvLine[2],
-		Region:            csvLine[3],
-		RegionCode:        csvLine[4],
-		City:              csvLine[5],
-		CityCode:          csvLine[6],
-		ConnSpeed:         csvLine[7],
-		ISP:               csvLine[8],
-		MobileCarrier:     csvLine[9],
-		MobileCarrierCode: csvLine[10],
+func (eo *ElasticObject) ToDataLine() *csv_helpers.DataLine {
+	return &csv_helpers.DataLine{
+		StartIP:           eo.IPAddress.StartIP,
+		EndIP:             eo.IPAddress.EndIP,
+		Country:           eo.Country,
+		Region:            eo.Region,
+		RegionCode:        eo.RegionCode,
+		City:              eo.City,
+		CityCode:          eo.CityCode,
+		ConnSpeed:         eo.ConnSpeed,
+		ISP:               eo.ISP,
+		MobileCarrier:     eo.MobileCarrier,
+		MobileCarrierCode: eo.MobileCarrierCode,
 	}
 }
 
-func (dl *DataLine) toElasticObject() *ElasticObject {
+func DataLineToElasticObject(dl *csv_helpers.DataLine) *ElasticObject {
 	return &ElasticObject{
 		IPAddress: ElasticIpRange{
 			StartIP: dl.StartIP,
@@ -64,21 +54,5 @@ func (dl *DataLine) toElasticObject() *ElasticObject {
 		ISP:               dl.ISP,
 		MobileCarrier:     dl.MobileCarrier,
 		MobileCarrierCode: dl.MobileCarrierCode,
-	}
-}
-
-func (eo *ElasticObject) toDataLine() *DataLine {
-	return &DataLine{
-		StartIP:           eo.IPAddress.StartIP,
-		EndIP:             eo.IPAddress.EndIP,
-		Country:           eo.Country,
-		Region:            eo.Region,
-		RegionCode:        eo.RegionCode,
-		City:              eo.City,
-		CityCode:          eo.CityCode,
-		ConnSpeed:         eo.ConnSpeed,
-		ISP:               eo.ISP,
-		MobileCarrier:     eo.MobileCarrier,
-		MobileCarrierCode: eo.MobileCarrierCode,
 	}
 }

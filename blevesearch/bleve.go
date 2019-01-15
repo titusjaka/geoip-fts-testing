@@ -1,8 +1,9 @@
-package main
+package blevesearch
 
 import (
 	"context"
 	"fmt"
+	"github.com/titusjaka/geoip-fts-testing"
 	"log"
 	"sync/atomic"
 	"time"
@@ -116,7 +117,7 @@ func openOrCreateNewBleveIndex(indexName string, indexMapping mapping.IndexMappi
 }
 
 func buildSearchQuery(ipAddr string) query.Query {
-	ipNumeric := ipToInt(ipAddr)
+	ipNumeric := geoip_fts_testing.IpToInt(ipAddr)
 	q1 := bleve.NewQueryStringQuery(fmt.Sprintf("%s:>=%d", InfoStartIP, ipNumeric))
 	q2 := bleve.NewQueryStringQuery(fmt.Sprintf("%s:<=%d", InfoEndIP, ipNumeric))
 

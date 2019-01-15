@@ -2,6 +2,9 @@ package main
 
 import (
 	"flag"
+	"github.com/titusjaka/geoip-fts-testing"
+	"github.com/titusjaka/geoip-fts-testing/csv-helpers"
+	"github.com/titusjaka/geoip-fts-testing/elasticsearch"
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 	"log"
@@ -14,29 +17,6 @@ var (
 	filename = flag.String("filename", "", "Path to SCV with GEO-info")
 	bulkSize = flag.Int("bulksize", 10000, "Number of documents to collect before committing")
 )
-
-type GeoElastic struct {
-	ID          string      `json:"id"`
-	IP          IPRange     `json:"ip_addr"`
-	Information ElasticInfo `json:"info"`
-}
-
-type IPRange struct {
-	Start string `json:"gte"`
-	End   string `json:"lte"`
-}
-
-type ElasticInfo struct {
-	CountryISO      string `json:"two-letter-country"`
-	RegionISO       string `json:"region"`
-	RegionCode      string `json:"region-code"`
-	City            string `json:"city"`
-	CityCode        string `json:"city-code"`
-	ConnectionSpeed string `json:"conn-speed"`
-	MobileIPS       string `json:"mobile-carrier"`
-	MobileIPSCode   string `json:"mobile-carrier-code"`
-	ProxyType       string `json:"proxy-type"`
-}
 
 func main() {
 	flag.Parse()
@@ -58,13 +38,13 @@ func main() {
 		log.Fatal("bulk-size must be a positive number")
 	}
 
-	client, err := NewElasticClient(*url)
+	client, err := elasticsearch.NewElasticClient(*url)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	csvChan := make(chan DataLine)
-	elasticChan := make(chan ElasticObject)
+	csvChan := make(chan csv_helpers.DataLine)
+	elasticChan := make(chan elasticsearch.ElasticObject)
 
 	gr, ctx := errgroup.WithContext(context.Background())
 
@@ -78,7 +58,7 @@ func main() {
 		func() error {
 			defer log.Println("[DEBUG] CSV channel is closed")
 			defer close(csvChan)
-			return readDataFromCSV(*filename, ctx, csvChan)
+			return csv_helpers.ReadDataFromCSV(*filename, ctx, csvChan)
 		},
 	)
 
@@ -87,8 +67,8 @@ func main() {
 			defer log.Println("[DEBUG] Elastic channel is closed")
 			defer close(elasticChan)
 			for line := range csvChan {
-				eo := line.toElasticObject()
-				id := getIdFromIpRange(eo.IPAddress)
+				eo := elasticsearch.DataLineToElasticObject(&line)
+				id := geoip_fts_testing.GetIdFromIpRange(eo.IPAddress.StartIP, eo.IPAddress.EndIP)
 				eo.ID = id
 				elasticChan <- *eo
 			}

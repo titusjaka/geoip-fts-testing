@@ -1,25 +1,12 @@
-package main
+package blevesearch
 
 import (
-	"math/big"
-
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/mapping"
+	"github.com/titusjaka/geoip-fts-testing"
+	"github.com/titusjaka/geoip-fts-testing/csv-helpers"
+	"math/big"
 )
-
-type DataLine struct {
-	StartIP           string `csv:"start-ip"`
-	EndIP             string `csv:"end-ip"`
-	Country           string `csv:"edge-two-letter-country"`
-	Region            string `csv:"edge-region"`
-	RegionCode        string `csv:"edge-region-code"`
-	City              string `csv:"edge-city"`
-	CityCode          string `csv:"edge-city-code"`
-	ConnSpeed         string `csv:"edge-conn-speed"`
-	ISP               string `csv:"isp-name"`
-	MobileCarrier     string `csv:"mobile-carrier"`
-	MobileCarrierCode string `csv:"mobile-carrier-code"`
-}
 
 // BleveInfoField is used as enum
 type BleveInfoField string
@@ -45,6 +32,22 @@ const (
 	InfoMobileCarrierCode BleveInfoField = "MobileCarrierCode"
 )
 
+func DalaLineToBleveInfoObject(dl *csv_helpers.DataLine) *BleveInfoObject {
+	return &BleveInfoObject{
+		StartIP:           geoip_fts_testing.IpToInt(dl.StartIP),
+		EndIP:             geoip_fts_testing.IpToInt(dl.EndIP),
+		Country:           dl.Country,
+		Region:            dl.Region,
+		RegionCode:        dl.RegionCode,
+		City:              dl.City,
+		CityCode:          dl.CityCode,
+		ConnSpeed:         dl.ConnSpeed,
+		ISP:               dl.ISP,
+		MobileCarrier:     dl.MobileCarrier,
+		MobileCarrierCode: dl.MobileCarrierCode,
+	}
+}
+
 type BleveInfoObject struct {
 	ID                string
 	StartIP           *big.Int
@@ -60,42 +63,10 @@ type BleveInfoObject struct {
 	MobileCarrierCode string
 }
 
-func csvLineToDataLine(csvLine []string) *DataLine {
-	return &DataLine{
-		StartIP:           csvLine[0],
-		EndIP:             csvLine[1],
-		Country:           csvLine[2],
-		Region:            csvLine[3],
-		RegionCode:        csvLine[4],
-		City:              csvLine[5],
-		CityCode:          csvLine[6],
-		ConnSpeed:         csvLine[7],
-		ISP:               csvLine[8],
-		MobileCarrier:     csvLine[9],
-		MobileCarrierCode: csvLine[10],
-	}
-}
-
-func (dl *DataLine) toBleveInfoObject() *BleveInfoObject {
-	return &BleveInfoObject{
-		StartIP:           ipToInt(dl.StartIP),
-		EndIP:             ipToInt(dl.EndIP),
-		Country:           dl.Country,
-		Region:            dl.Region,
-		RegionCode:        dl.RegionCode,
-		City:              dl.City,
-		CityCode:          dl.CityCode,
-		ConnSpeed:         dl.ConnSpeed,
-		ISP:               dl.ISP,
-		MobileCarrier:     dl.MobileCarrier,
-		MobileCarrierCode: dl.MobileCarrierCode,
-	}
-}
-
-func (bo *BleveInfoObject) toDataLine() *DataLine {
-	return &DataLine{
-		StartIP:           intToIp(bo.StartIP),
-		EndIP:             intToIp(bo.EndIP),
+func (bo *BleveInfoObject) ToDataLine() *csv_helpers.DataLine {
+	return &csv_helpers.DataLine{
+		StartIP:           geoip_fts_testing.IntToIp(bo.StartIP),
+		EndIP:             geoip_fts_testing.IntToIp(bo.EndIP),
 		Country:           bo.Country,
 		Region:            bo.Region,
 		RegionCode:        bo.RegionCode,
