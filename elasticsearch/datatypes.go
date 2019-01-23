@@ -1,6 +1,7 @@
 package elasticsearch
 
 import (
+	"github.com/gosexy/to"
 	"github.com/titusjaka/geoip-fts-testing/csv-helpers"
 )
 
@@ -9,13 +10,13 @@ type ElasticObject struct {
 	IPAddress         ElasticIpRange `json:"ip_address"`
 	Country           string         `json:"country"`
 	Region            string         `json:"region"`
-	RegionCode        string         `json:"region_code"`
+	RegionCode        uint32         `json:"region_code"`
 	City              string         `json:"city"`
-	CityCode          string         `json:"city_code"`
+	CityCode          uint32         `json:"city_code"`
 	ConnSpeed         string         `json:"conn_speed"`
 	ISP               string         `json:"isp"`
 	MobileCarrier     string         `json:"mobile_carrier"`
-	MobileCarrierCode string         `json:"mobile_carrier_code"`
+	MobileCarrierCode uint32         `json:"mobile_carrier_code"`
 }
 
 type ElasticIpRange struct {
@@ -29,13 +30,13 @@ func (eo *ElasticObject) ToDataLine() *csv_helpers.DataLine {
 		EndIP:             eo.IPAddress.EndIP,
 		Country:           eo.Country,
 		Region:            eo.Region,
-		RegionCode:        eo.RegionCode,
+		RegionCode:        to.String(eo.RegionCode),
 		City:              eo.City,
-		CityCode:          eo.CityCode,
+		CityCode:          to.String(eo.CityCode),
 		ConnSpeed:         eo.ConnSpeed,
 		ISP:               eo.ISP,
 		MobileCarrier:     eo.MobileCarrier,
-		MobileCarrierCode: eo.MobileCarrierCode,
+		MobileCarrierCode: to.String(eo.MobileCarrierCode),
 	}
 }
 
@@ -47,12 +48,12 @@ func DataLineToElasticObject(dl *csv_helpers.DataLine) *ElasticObject {
 		},
 		Country:           dl.Country,
 		Region:            dl.Region,
-		RegionCode:        dl.RegionCode,
+		RegionCode:        uint32(to.Uint64(dl.RegionCode)),
 		City:              dl.City,
-		CityCode:          dl.CityCode,
+		CityCode:          uint32(to.Uint64(dl.CityCode)),
 		ConnSpeed:         dl.ConnSpeed,
 		ISP:               dl.ISP,
 		MobileCarrier:     dl.MobileCarrier,
-		MobileCarrierCode: dl.MobileCarrierCode,
+		MobileCarrierCode: uint32(to.Uint64(dl.MobileCarrierCode)),
 	}
 }
