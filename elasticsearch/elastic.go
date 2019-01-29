@@ -26,17 +26,21 @@ func NewElasticClient(url string) (*ElasticClient, error) {
 
 func (client *ElasticClient) createIndexMapping(context context.Context, index string, mapping string) error {
 	if exists, err := client.Connection.IndexExists(index).Do(context); err != nil {
+		log.Print("no need to create mapping, index exist already")
 		return err
 	} else if exists {
 		return nil
 	}
 
 	_, err := client.Connection.CreateIndex(index).Body(mapping).Do(context)
+	if err == nil {
+		log.Print("mapping created successfully")
+	}
 
 	return err
 }
 
-func (client *ElasticClient) Update(context context.Context, index string, bulkSize int, objects chan ElasticObject) error {
+func (client *ElasticClient) Update(context context.Context, index string, bulkSize int, objects chan Info) error {
 	log.Printf("create index '%s' mapping", index)
 
 	err := client.createIndexMapping(context, index, defaultInfoMapping)

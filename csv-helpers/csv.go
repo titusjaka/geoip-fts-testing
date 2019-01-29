@@ -49,6 +49,7 @@ func csvLineToDataLine(csvLine []string) *DataLine {
 		ISP:               csvLine[8],
 		MobileCarrier:     csvLine[9],
 		MobileCarrierCode: csvLine[10],
+		ProxyType:         csvLine[11],
 	}
 }
 
@@ -64,4 +65,5 @@ type DataLine struct {
 	ISP               string `csv:"isp-name"`
 	MobileCarrier     string `csv:"mobile-carrier"`
 	MobileCarrierCode string `csv:"mobile-carrier-code"`
+	ProxyType         string `csv:"proxy-type"`
 }

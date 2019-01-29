@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"github.com/titusjaka/geoip-fts-testing"
 	"github.com/titusjaka/geoip-fts-testing/csv-helpers"
 	"github.com/titusjaka/geoip-fts-testing/elasticsearch"
 	"golang.org/x/net/context"
@@ -44,7 +43,7 @@ func main() {
 	}
 
 	csvChan := make(chan csv_helpers.DataLine)
-	elasticChan := make(chan elasticsearch.ElasticObject)
+	elasticChan := make(chan elasticsearch.Info)
 
 	gr, ctx := errgroup.WithContext(context.Background())
 
@@ -68,8 +67,6 @@ func main() {
 			defer close(elasticChan)
 			for line := range csvChan {
 				eo := elasticsearch.DataLineToElasticObject(&line)
-				id := geoip_fts_testing.GetIdFromIpRange(eo.IPAddress.StartIP, eo.IPAddress.EndIP)
-				eo.ID = id
 				elasticChan <- *eo
 			}
 			return nil

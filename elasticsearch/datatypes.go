@@ -5,26 +5,27 @@ import (
 	"github.com/titusjaka/geoip-fts-testing/csv-helpers"
 )
 
-type ElasticObject struct {
-	ID                string         `json:"-"`
-	IPAddress         ElasticIpRange `json:"ip_address"`
-	Country           string         `json:"country"`
-	Region            string         `json:"region"`
-	RegionCode        uint32         `json:"region_code"`
-	City              string         `json:"city"`
-	CityCode          uint32         `json:"city_code"`
-	ConnSpeed         string         `json:"conn_speed"`
-	ISP               string         `json:"isp"`
-	MobileCarrier     string         `json:"mobile_carrier"`
-	MobileCarrierCode uint32         `json:"mobile_carrier_code"`
+type Info struct {
+	IPAddress     IpRange `json:"ip_address"`
+	Country       string  `json:"country"`
+	CountryCode   string  `json:"country_code"`
+	Region        string  `json:"region"`
+	RegionCode    uint32  `json:"region_code"`
+	City          string  `json:"city"`
+	CityCode      uint32  `json:"city_code"`
+	ConnSpeed     string  `json:"conn_speed"`
+	ISP           string  `json:"isp"`
+	MobileISP     string  `json:"mobile_isp"`
+	MobileISPCode uint32  `json:"mobile_isp_code"`
+	ProxyType     string  `json:"proxy_type"`
 }
 
-type ElasticIpRange struct {
+type IpRange struct {
 	StartIP string `json:"gte"`
 	EndIP   string `json:"lte"`
 }
 
-func (eo *ElasticObject) ToDataLine() *csv_helpers.DataLine {
+func (eo *Info) ToDataLine() *csv_helpers.DataLine {
 	return &csv_helpers.DataLine{
 		StartIP:           eo.IPAddress.StartIP,
 		EndIP:             eo.IPAddress.EndIP,
@@ -35,25 +36,27 @@ func (eo *ElasticObject) ToDataLine() *csv_helpers.DataLine {
 		CityCode:          to.String(eo.CityCode),
 		ConnSpeed:         eo.ConnSpeed,
 		ISP:               eo.ISP,
-		MobileCarrier:     eo.MobileCarrier,
-		MobileCarrierCode: to.String(eo.MobileCarrierCode),
+		MobileCarrier:     eo.MobileISP,
+		MobileCarrierCode: to.String(eo.MobileISPCode),
+		ProxyType:         eo.ProxyType,
 	}
 }
 
-func DataLineToElasticObject(dl *csv_helpers.DataLine) *ElasticObject {
-	return &ElasticObject{
-		IPAddress: ElasticIpRange{
+func DataLineToElasticObject(dl *csv_helpers.DataLine) *Info {
+	return &Info{
+		IPAddress: IpRange{
 			StartIP: dl.StartIP,
 			EndIP:   dl.EndIP,
 		},
-		Country:           dl.Country,
-		Region:            dl.Region,
-		RegionCode:        uint32(to.Uint64(dl.RegionCode)),
-		City:              dl.City,
-		CityCode:          uint32(to.Uint64(dl.CityCode)),
-		ConnSpeed:         dl.ConnSpeed,
-		ISP:               dl.ISP,
-		MobileCarrier:     dl.MobileCarrier,
-		MobileCarrierCode: uint32(to.Uint64(dl.MobileCarrierCode)),
+		Country:       dl.Country,
+		Region:        dl.Region,
+		RegionCode:    uint32(to.Uint64(dl.RegionCode)),
+		City:          dl.City,
+		CityCode:      uint32(to.Uint64(dl.CityCode)),
+		ConnSpeed:     dl.ConnSpeed,
+		ISP:           dl.ISP,
+		MobileISP:     dl.MobileCarrier,
+		MobileISPCode: uint32(to.Uint64(dl.MobileCarrierCode)),
+		ProxyType:     dl.ProxyType,
 	}
 }
