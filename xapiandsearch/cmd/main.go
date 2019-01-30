@@ -36,7 +36,7 @@ func main() {
 
 	client := xapiandsearch.NewXapiandClient(*url, *index)
 
-	csvChan := make(chan csv_helpers.DataLine)
+	csvChan := make(chan csv_helpers.GeoInfoLine)
 	xapiandChan := make(chan xapiandsearch.XapiandObject)
 
 	gr, ctx := errgroup.WithContext(context.Background())
@@ -51,7 +51,7 @@ func main() {
 		func() error {
 			defer log.Println("[DEBUG] CSV channel is closed")
 			defer close(csvChan)
-			return csv_helpers.ReadDataFromCSV(*filename, ctx, csvChan)
+			return csv_helpers.ReadGeoInfoFromCSV(*filename, ctx, csvChan)
 		},
 	)
 

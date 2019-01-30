@@ -1,4 +1,4 @@
-package elasticsearch
+package main
 
 const defaultInfoMapping string = `
 {
@@ -13,10 +13,6 @@ const defaultInfoMapping string = `
           "type": "ip_range",
           "coerce": false,
           "index": true
-        },
-        "country": {
-          "type": "keyword",
-          "index": false
         },
         "country_code": {
           "type": "keyword",
@@ -42,10 +38,6 @@ const defaultInfoMapping string = `
           "type": "keyword",
           "index": false
         },
-        "isp": {
-          "type": "keyword",
-          "index": false
-        },
         "mobile_isp": {
           "type": "keyword",
           "index": false
@@ -61,5 +53,38 @@ const defaultInfoMapping string = `
       }
     }
   }
+}
+`
+
+const defaultCountryMapping string = `
+{
+    "settings": {
+        "number_of_shards": 5,
+        "number_of_replicas": 1
+    },
+    "mappings": {
+        "_doc": {
+            "properties": {
+                "title": {
+                    "type": "text",
+                    "index": true,
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword"
+                        }
+                    }
+                },
+                "iso": {
+                    "type": "text",
+                    "index": true,
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword"
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 `

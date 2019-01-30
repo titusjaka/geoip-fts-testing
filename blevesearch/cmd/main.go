@@ -49,7 +49,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	csvChan := make(chan csv_helpers.DataLine)
+	csvChan := make(chan csv_helpers.GeoInfoLine)
 	bleveChan := make(chan blevesearch.BleveInfoObject)
 
 	gr, ctx := errgroup.WithContext(context.Background())
@@ -64,7 +64,7 @@ func main() {
 		func() error {
 			defer log.Println("[DEBUG] CSV channel is closed")
 			defer close(csvChan)
-			return csv_helpers.ReadDataFromCSV(*filename, ctx, csvChan)
+			return csv_helpers.ReadGeoInfoFromCSV(*filename, ctx, csvChan)
 		},
 	)
 

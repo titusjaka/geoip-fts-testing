@@ -24,7 +24,7 @@ func NewElasticClient(url string) (*ElasticClient, error) {
 	}, nil
 }
 
-func (client *ElasticClient) createIndexMapping(context context.Context, index string, mapping string) error {
+func (client *ElasticClient) CreateIndexMapping(context context.Context, index string, mapping string) error {
 	if exists, err := client.Connection.IndexExists(index).Do(context); err != nil {
 		log.Print("no need to create mapping, index exist already")
 		return err
@@ -40,13 +40,7 @@ func (client *ElasticClient) createIndexMapping(context context.Context, index s
 	return err
 }
 
-func (client *ElasticClient) Update(context context.Context, index string, bulkSize int, objects chan Info) error {
-	log.Printf("create index '%s' mapping", index)
-
-	err := client.createIndexMapping(context, index, defaultInfoMapping)
-	if err != nil {
-		log.Fatal(err)
-	}
+func (client *ElasticClient) Update(context context.Context, index string, bulkSize uint64, objects chan interface{}) error {
 
 	var total uint64
 	begin := time.Now()
@@ -65,7 +59,7 @@ func (client *ElasticClient) Update(context context.Context, index string, bulkS
 		default:
 			//bulk.Add(elastic.NewBulkIndexRequest().Id(obj.ID).Doc(obj))
 			bulk.Add(elastic.NewBulkIndexRequest().Doc(obj))
-			if bulk.NumberOfActions() >= bulkSize {
+			if bulk.NumberOfActions() >= int(bulkSize) {
 				// Commit
 				res, err := bulk.Do(context)
 				if err != nil {
@@ -81,7 +75,7 @@ func (client *ElasticClient) Update(context context.Context, index string, bulkS
 	}
 	// Commit the final batch before exiting
 	if bulk.NumberOfActions() > 0 {
-		_, err = bulk.Do(context)
+		_, err := bulk.Do(context)
 		if err != nil {
 			return err
 		}
