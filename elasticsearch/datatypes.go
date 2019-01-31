@@ -18,11 +18,6 @@ type Info struct {
 	ProxyType     string  `json:"proxy_type"`
 }
 
-type Country struct {
-	Iso   string `json:"iso"`
-	Title string `json:"title"`
-}
-
 type IpRange struct {
 	StartIP string `json:"gte"`
 	EndIP   string `json:"lte"`
@@ -44,7 +39,7 @@ func (i *Info) ToDataLine() *csv_helpers.GeoInfoLine {
 	}
 }
 
-func GeoInfiLineToElasticObject(dl *csv_helpers.GeoInfoLine) *Info {
+func GeoInfoLineToElasticObject(dl *csv_helpers.GeoInfoLine) *Info {
 	return &Info{
 		IPAddress: IpRange{
 			StartIP: dl.StartIP,
@@ -62,9 +57,28 @@ func GeoInfiLineToElasticObject(dl *csv_helpers.GeoInfoLine) *Info {
 	}
 }
 
+type Country struct {
+	Iso   string `json:"iso"`
+	Title string `json:"title"`
+}
+
 func CountryInfoToElasticObject(line *csv_helpers.CountryLine) *Country {
 	return &Country{
 		Iso:   line.Iso3,
 		Title: line.CountryName,
+	}
+}
+
+type Region struct {
+	CountryIso3 string `json:"country_iso"`
+	RegionName  string `json:"title"`
+	RegionCode  uint32 `json:"code"`
+}
+
+func RegionInfoToElasticObject(line *csv_helpers.RegionLine) *Region {
+	return &Region{
+		CountryIso3: line.CountryIso3,
+		RegionName:  line.RegionName,
+		RegionCode:  uint32(to.Uint64(line.RegionCode)),
 	}
 }

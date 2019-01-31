@@ -18,7 +18,11 @@ var (
 	// Country info index
 	fillCountry  = flag.Bool("country.fill", false, "Fill Info index")
 	countryIndex = flag.String("country.index", "country-info-index", "Elasticsearch countryIndex name")
-	countryFile  = flag.String("country.file", "", "Path to SCV with GEO-info")
+	countryFile  = flag.String("country.file", "", "Path to SCV with country info")
+	// Region info index
+	fillRegion  = flag.Bool("region.fill", false, "Fill Info index")
+	regionIndex = flag.String("region.index", "region-info-index", "Elasticsearch regionIndex name")
+	regionFile  = flag.String("region.file", "", "Path to SCV with region info")
 	// Other params
 	url      = flag.String("url", "http://localhost:9200", "Elasticsearch URL")
 	typ      = flag.String("type", "_doc", "Elasticsearch type name")
@@ -29,7 +33,7 @@ func main() {
 	flag.Parse()
 	log.SetFlags(0)
 
-	if !*fillInfo && !*fillCountry {
+	if !*fillInfo && !*fillCountry && !*fillRegion {
 		log.Printf("no jobs")
 		os.Exit(0)
 	}
@@ -60,6 +64,14 @@ func main() {
 		log.Fatal("missing PATH to country CSV-file")
 	}
 
+	// Country info index
+	if *fillRegion && *regionIndex == "" {
+		log.Fatal("missing regionIndex parameter")
+	}
+	if *fillRegion && *regionFile == "" {
+		log.Fatal("missing PATH to region CSV-file")
+	}
+
 	client, err := elasticsearch.NewElasticClient(*url)
 	if err != nil {
 		log.Fatal(err)
@@ -71,6 +83,47 @@ func main() {
 
 	if *fillCountry {
 		fillCountryIndex(client)
+	}
+	if *fillRegion {
+		fillRegionIndex(client)
+	}
+}
+
+func fillRegionIndex(client *elasticsearch.ElasticClient) {
+	gr, ctx := errgroup.WithContext(context.Background())
+	csvRegionChan := make(chan csv_helpers.RegionLine)
+	esRegionChan := make(chan interface{})
+
+	if err := client.CreateIndexMapping(ctx, *regionIndex, defaultRegionsMapping); err != nil {
+		log.Fatalf("Cannot create %s mapping", *regionIndex)
+	}
+
+	gr.Go(
+		func() error {
+			return client.Update(ctx, *regionIndex, *bulkSize, esRegionChan)
+		},
+	)
+	gr.Go(
+		func() error {
+			defer log.Println("[DEBUG] CSV region channel is closed")
+			defer close(csvRegionChan)
+			return csv_helpers.ReadRegionInfoFromCSV(*regionFile, ctx, csvRegionChan)
+		},
+	)
+	gr.Go(
+		func() error {
+			defer log.Println("[DEBUG] Elastic region channel is closed")
+			defer close(esRegionChan)
+			for line := range csvRegionChan {
+				eo := elasticsearch.RegionInfoToElasticObject(&line)
+				esRegionChan <- *eo
+			}
+			return nil
+		},
+	)
+	err := gr.Wait()
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
@@ -138,7 +191,7 @@ func fillInfoIndex(client *elasticsearch.ElasticClient) {
 			defer log.Println("[DEBUG] Elastic Info channel is closed")
 			defer close(esInfoChan)
 			for line := range csvInfoChan {
-				eo := elasticsearch.GeoInfiLineToElasticObject(&line)
+				eo := elasticsearch.GeoInfoLineToElasticObject(&line)
 				esInfoChan <- *eo
 			}
 			return nil

@@ -70,6 +70,40 @@ func ReadCountryInfoFromCSV(filename string, context context.Context, geoInfoCha
 	return nil
 }
 
+func ReadRegionInfoFromCSV(filename string, context context.Context, geoInfoChan chan RegionLine) (err error) {
+	f, err := os.Open(filename)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+
+	cr := csv.NewReader(f)
+	cr.Comma = rune(',')
+	//cr.Comment = rune('#')
+	cr.ReuseRecord = true
+	var readFirstLine bool
+
+	for {
+		d, err := cr.Read()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+		if !readFirstLine {
+			readFirstLine = true
+			continue
+		}
+		select {
+		case geoInfoChan <- *csvLineToRegionLine(d):
+		case <-context.Done():
+			return context.Err()
+		}
+	}
+	return nil
+}
+
 func csvLineToGeoInfoLine(csvLine []string) *GeoInfoLine {
 	return &GeoInfoLine{
 		StartIP:           csvLine[0],
@@ -98,6 +132,15 @@ func csvLineToCountryLine(csvLine []string) *CountryLine {
 	}
 }
 
+func csvLineToRegionLine(csvLine []string) *RegionLine {
+	return &RegionLine{
+		CountryIso3: csvLine[0],
+		RegionIso3:  csvLine[1],
+		RegionName:  csvLine[2],
+		RegionCode:  csvLine[3],
+	}
+}
+
 type GeoInfoLine struct {
 	StartIP           string `csv:"start-ip"`
 	EndIP             string `csv:"end-ip"`
@@ -120,4 +163,11 @@ type CountryLine struct {
 	ContinentCode string `csv:"CONTINENT-CODE"`
 	ContinentName string `csv:"CONTINENT-NAME"`
 	CountryCode   string `csv:"COUNTRY-CODE"`
+}
+
+type RegionLine struct {
+	CountryIso3 string `csv:"COUNTRY"`
+	RegionIso3  string `csv:"REGION"`
+	RegionName  string `csv:"REGION-DESC"`
+	RegionCode  string `csv:"REGION-CODE"`
 }

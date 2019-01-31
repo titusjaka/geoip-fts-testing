@@ -8,6 +8,7 @@ const defaultInfoMapping string = `
   },
   "mappings": {
     "_doc": {
+      "dynamic": "strict",
       "properties": {
         "ip_address": {
           "type": "ip_range",
@@ -55,36 +56,65 @@ const defaultInfoMapping string = `
   }
 }
 `
-
 const defaultCountryMapping string = `
 {
-    "settings": {
-        "number_of_shards": 5,
-        "number_of_replicas": 1
-    },
-    "mappings": {
-        "_doc": {
-            "properties": {
-                "title": {
-                    "type": "text",
-                    "index": true,
-                    "fields": {
-                        "keyword": {
-                            "type": "keyword"
-                        }
-                    }
-                },
-                "iso": {
-                    "type": "text",
-                    "index": true,
-                    "fields": {
-                        "keyword": {
-                            "type": "keyword"
-                        }
-                    }
-                }
+  "settings": {
+    "number_of_shards": 5,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "_doc": {
+      "dynamic": "strict",
+      "properties": {
+        "title": {
+          "type": "text",
+          "index": true,
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
             }
+          }
+        },
+        "iso": {
+          "type": "keyword",
+          "index": true
         }
+      }
     }
+  }
+}
+`
+
+const defaultRegionsMapping string = `
+{
+  "settings": {
+    "number_of_shards": 5,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "_doc": {
+      "dynamic": "strict",
+      "properties": {
+        "country_iso": {
+          "type": "keyword",
+          "index": true
+        },
+        "title": {
+          "type": "text",
+          "index": true,
+          "fields": {
+            "keyword": {
+              "type": "keyword"
+            }
+          }
+        },
+        "code": {
+          "type": "integer",
+          "index": true
+        }
+      }
+    }
+  }
 }
 `
